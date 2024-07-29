@@ -17,10 +17,12 @@ def write_to_elastic(es, url, html):
 def crawl(browser, r, es, neo, url):
     print("Downloading url:", url)
     browser.open(url)
-    print(browser.page)
+    # print(browser.page)
 
     print("Parsing data")
-    #parse data
+    page = browser.page
+    
+    items = page.find_all(class_='class-name')
 
     print("Pushing to elastic")
     write_to_elastic(es, url, str(browser.page))
