@@ -20,7 +20,7 @@ def crawl(browser, r, es, neo, url):
     print(browser.page)
 
     print("Parsing data")
-
+    #parse data
 
     print("Pushing to elastic")
     write_to_elastic(es, url, str(browser.page))
