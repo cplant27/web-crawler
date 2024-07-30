@@ -2,3 +2,5 @@ sudo service redis-server start
 
 docker run -p 127.0.0.1:9200:9200 -d --name elasticsearch --network elastic-net   -e ELASTIC_PASSWORD=$ELASTIC_PASSWORD   -e "discovery.type=single-node"   -e "xpack.security.http.ssl.enabled=false"   -e "xpack.license.self_generated.type=trial"  -v ~Data_Science/data:/usr/share/elasticsearch/data
   docker.elastic.co/elasticsearch/elasticsearch:8.14.2
+
+ACCESS TOKEN: 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
