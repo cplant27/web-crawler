@@ -62,6 +62,33 @@ def crawl(browser, r, es, url):
 
 ### MAIN ###
 
+# username = 'elastic'
+# password = os.getenv('ELASTIC_PASSWORD')
+
+# if not password:
+#     raise ValueError("ELASTIC_PASSWORD environment variable is not set.")
+
+# es = Elasticsearch(
+#     "http://localhost:9200",
+#     basic_auth=(username, password)
+# )
+
+# r = redis.Redis()
+# r.flushall()
+
+# browser = ms.StatefulBrowser()
+
+# start_url = "https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer"
+
+# url = "https://www.linkedin.com/jobs/view/3978276878/?alternateChannel=search&refId=fBu82BZzzrBgqeHx5TJnhQ%3D%3D&trackingId=17OoZWzCceiVGfg7SMMLiQ%3D%3D"
+# browser.open(url)
+# scrape_data(browser,url)
+
+# r.lpush("links", start_url)
+
+# while link := r.rpop("links"):
+#     crawl(browser, r, es, link)
+
 username = 'elastic'
 password = os.getenv('ELASTIC_PASSWORD')
 
@@ -76,14 +103,14 @@ es = Elasticsearch(
 r = redis.Redis()
 r.flushall()
 
-browser = ms.StatefulBrowser()
+driver = webdriver.Chrome
 
 start_url = "https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer"
 
 url = "https://www.linkedin.com/jobs/view/3978276878/?alternateChannel=search&refId=fBu82BZzzrBgqeHx5TJnhQ%3D%3D&trackingId=17OoZWzCceiVGfg7SMMLiQ%3D%3D"
-browser.open(url)
-scrape_data(browser,url)
+driver.get(url)
 exit()
+scrape_data(driver, url)
 
 r.lpush("links", start_url)
 
