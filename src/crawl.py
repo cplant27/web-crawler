@@ -6,6 +6,8 @@ import requests
 import sqlite3
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+
 
 
 connection = sqlite3.connect("linkedin_jobs.db")
@@ -16,36 +18,43 @@ def write_to_elastic(es, url, document):
     url = url.decode('utf-8')
     es.index(index='scrape', document=document)
 
-def scrape_data(browser, id):
+# def scrape_data(browser, id):
+#     document = {'id': id}
+#     divs = browser.page
+#     print(divs)
+#     for div in divs:
+#         print(div.get_attribute("class"))
+#     # document['company'] = browser.page.find_first(class_='job-details-jobs-unified-top-card__company-name')
+#     # document['job_title'] = browser.page.find_first(class_='job-details-jobs-unified-top-card__job-title')
+#     exit()
+#     return document
+
+def scrape_data(driver, id):
     document = {'id': id}
-    divs = browser.page
-    print(divs)
-    for div in divs:
-        print(div.get_attribute("class"))
     # document['company'] = browser.page.find_first(class_='job-details-jobs-unified-top-card__company-name')
-    # document['job_title'] = browser.page.find_first(class_='job-details-jobs-unified-top-card__job-title')
-    exit()
+    document["title"] = driver.find_elements(By.CLASS_NAME, 'top-card-layout__title')[0].text
+    print(document["title"])
     return document
 
-def crawl(browser, r, es, url):
+def crawl(driver, r, es, url):
     print("\nDownloading url:", url)
-    browser.open(url)
-    # print(browser.page)
+    url = url.decode('utf-8')
+    driver.get(url)
 
     print("Parsing data") 
     if "jobs/view" in str(url):
         id = str(url).split('/')
         # print(id)
         # exit()
-        document = scrape_data(browser, id)
+        document = scrape_data(driver, id)
         print("DOCUMENT", document)
 
     print("Pushing to elastic")
     # write_to_elastic(es, url, document)
 
     print("Parsing for more links")
-    a_tags = browser.page.find_all("a")
-    hrefs = [a.get("href") for a in a_tags if a.get("href")]
+    a_tags = driver.find_elements(By.TAG_NAME, "a")
+    hrefs = [a.get_attribute("href") for a in a_tags if a.get_attribute("href")]
 
     linkedin_domain = "https://www.linkedin.com"
     job_links = [a if a.startswith("https://") else linkedin_domain + a for a in hrefs if "jobs/" in a]
@@ -103,17 +112,15 @@ es = Elasticsearch(
 r = redis.Redis()
 r.flushall()
 
-driver = webdriver.Chrome
+chrome_options = Options()
+# chrome_options.add_experimental_option("detach", True)
+
+driver = webdriver.Chrome(options=chrome_options)
 
 start_url = "https://www.linkedin.com/jobs/search/?keywords=Software%20Engineer"
-
-url = "https://www.linkedin.com/jobs/view/3978276878/?alternateChannel=search&refId=fBu82BZzzrBgqeHx5TJnhQ%3D%3D&trackingId=17OoZWzCceiVGfg7SMMLiQ%3D%3D"
-driver.get(url)
-exit()
-scrape_data(driver, url)
 
 r.lpush("links", start_url)
 
 while link := r.rpop("links"):
-    crawl(browser, r, es, link)
+    crawl(driver, r, es, link)
 
